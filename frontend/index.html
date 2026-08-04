@@ -1,0 +1,87 @@
+<title>Universo RAR TE — Prospectos</title>
+<meta charset="utf-8" />
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; }
+  .filtros { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  select, input { padding: 0.4rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+  th { background: #f4f4f4; position: sticky; top: 0; }
+  #estado { color: #666; font-size: 0.85rem; margin-bottom: 1rem; }
+</style>
+
+<h1>Universo de Prospectos RAR TE</h1>
+<div id="estado">Cargando…</div>
+
+<div class="filtros">
+  <select id="filtroAnillo">
+    <option value="">Todos los anillos</option>
+    <option value="Anillo 1">Anillo 1</option>
+    <option value="Anillo 2">Anillo 2</option>
+    <option value="Anillo 1+2">Anillo 1+2</option>
+  </select>
+  <input id="filtroBusqueda" placeholder="Buscar por RUC o razón social" />
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>RUC</th><th>Razón social</th><th>CIIU</th><th>Ubigeo</th>
+      <th>Tamaño</th><th>Anillo</th><th>Fuente</th><th>Fecha corte</th>
+    </tr>
+  </thead>
+  <tbody id="filas"></tbody>
+</table>
+
+<!-- TODO: reemplazar por la config real una vez creada la Web App en Firebase Console -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "TODO",
+    authDomain: "TODO.firebaseapp.com",
+    projectId: "TODO",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let filas = [];
+
+  async function cargar() {
+    const snap = await getDocs(collection(db, "empresas"));
+    filas = snap.docs.map((d) => d.data());
+    document.getElementById("estado").textContent = `${filas.length} empresas cargadas`;
+    render();
+  }
+
+  function render() {
+    const anillo = document.getElementById("filtroAnillo").value;
+    const busqueda = document.getElementById("filtroBusqueda").value.toLowerCase();
+
+    const filtradas = filas.filter((f) => {
+      if (anillo && f.anillo !== anillo) return false;
+      if (busqueda && !(`${f.ruc} ${f.razon_social}`.toLowerCase().includes(busqueda))) return false;
+      return true;
+    });
+
+    document.getElementById("filas").innerHTML = filtradas
+      .map((f) => `<tr>
+        <td>${f.ruc ?? ""}</td>
+        <td>${f.razon_social ?? ""}</td>
+        <td>${f.ciiu ?? ""}</td>
+        <td>${f.ubigeo ?? ""}</td>
+        <td>${f.tamano ?? ""}</td>
+        <td>${f.anillo ?? ""}</td>
+        <td>${f.fuente ?? ""}</td>
+        <td>${f.fecha_corte ?? ""}</td>
+      </tr>`)
+      .join("");
+  }
+
+  document.getElementById("filtroAnillo").addEventListener("change", render);
+  document.getElementById("filtroBusqueda").addEventListener("input", render);
+
+  cargar();
+</script>

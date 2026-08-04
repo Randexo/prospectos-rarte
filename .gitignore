@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Archivos fuente crudos (pesados, re-descargables desde la fuente original)
+raw/*.csv
+!raw/.gitkeep
+
+# Salidas versionadas localmente pero no en el repo (pueden crecer mucho)
+output/*.csv
+!output/.gitkeep
+
+# Por si algún día se copia por error a esta carpeta
+*firebase_service_account*.json
+.env

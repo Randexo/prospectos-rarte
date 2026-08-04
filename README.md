@@ -11,7 +11,8 @@ raw/          archivos crudos tal cual se descargan, sin transformar
               (nombre: <fuente>_YYYY-MM-DD.csv)
 scripts/      ETL: 4 scripts de mapeo + orquestador + subida a Firestore
 output/       universo_consolidado_YYYY-MM-DD.csv, uno por corrida
-frontend/     página estática que consulta Firestore directo (sin backend propio)
+docs/         página estática que consulta Firestore directo (sin backend propio),
+              servida vía GitHub Pages desde esta carpeta
 credentials/  service account de Firebase (gitignorado, específico de este proyecto)
 ```
 
@@ -23,7 +24,7 @@ credentials/  service account de Firebase (gitignorado, específico de este proy
    `scripts/map_*.py` (los nombres reales de columna varían por fuente).
 3. Crear el proyecto Firebase (ver guía aparte) y colocar el service account
    en `credentials/firebase_service_account.json`.
-4. Completar `firebaseConfig` en `frontend/index.html` con los datos de la Web App.
+4. `firebaseConfig` en `docs/index.html` ya está completo con los datos de la Web App.
 
 ## Correr
 

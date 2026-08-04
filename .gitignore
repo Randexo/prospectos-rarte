@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+.DS_Store
 
 # Archivos fuente crudos (pesados, re-descargables desde la fuente original)
 raw/*.csv
@@ -11,6 +12,8 @@ raw/*.csv
 output/*.csv
 !output/.gitkeep
 
-# Por si algún día se copia por error a esta carpeta
+# Credenciales del proyecto (service account de Firebase, etc.) — nunca al repo
+credentials/*
+!credentials/.gitkeep
 *firebase_service_account*.json
 .env

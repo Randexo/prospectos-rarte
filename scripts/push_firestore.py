@@ -2,7 +2,9 @@
 
 Requiere el JSON del service account de Firebase. Se busca en, en este orden:
   1. Variable de entorno FIREBASE_CREDENTIALS_PATH
-  2. shared/auth/firebase_service_account.json (convención del workspace)
+  2. credentials/firebase_service_account.json (dentro del propio proyecto,
+     gitignorado — es una credencial específica de este proyecto, no
+     transversal, así que no vive en shared/auth/)
 """
 
 import os
@@ -11,8 +13,8 @@ import firebase_admin
 import pandas as pd
 from firebase_admin import credentials, firestore
 
-CRED_PATH_DEFAULT = os.path.expanduser(
-    "~/My Drive/Rando_claude/shared/auth/firebase_service_account.json"
+CRED_PATH_DEFAULT = os.path.join(
+    os.path.dirname(__file__), "..", "credentials", "firebase_service_account.json"
 )
 
 

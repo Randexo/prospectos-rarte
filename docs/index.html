@@ -1,19 +1,155 @@
 <title>Universo RAR TE — Prospectos</title>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  body { font-family: system-ui, sans-serif; margin: 2rem; }
-  .filtros { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-  select, input { padding: 0.4rem; }
-  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-  th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
-  th { background: #f4f4f4; position: sticky; top: 0; }
-  #estado { color: #666; font-size: 0.85rem; margin-bottom: 1rem; }
-  #aviso-limite { color: #a15c00; font-size: 0.85rem; margin-top: 0.5rem; }
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --gridline: #e1e0d9;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6; /* Anillo 1 */
+    --series-2: #eb6834; /* Anillo 2 */
+    --series-3: #1baf7a; /* Anillo 1+2 */
+    --seq-blue: #2a78d6;
+    --status-good: #0ca30c;
+    --status-warning: #fab219;
+    --status-good-bg: #e6f6e6;
+    --status-warning-bg: #fef3dc;
+    --status-muted-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1: #1a1a19;
+      --page: #0d0d0d;
+      --text-primary: #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted: #898781;
+      --gridline: #2c2c2a;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --status-good: #0ca30c;
+      --status-warning: #fab219;
+      --status-good-bg: #123312;
+      --status-warning-bg: #3a2c0d;
+      --status-muted-bg: #262625;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --status-good-bg: #123312;
+    --status-warning-bg: #3a2c0d;
+    --status-muted-bg: #262625;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2rem;
+    background: var(--page);
+    color: var(--text-primary);
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+  .subt { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* KPI row */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .kpi { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; }
+  .kpi .label { font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.35rem; }
+  .kpi .value { font-size: 1.7rem; font-weight: 600; }
+  .kpi.good .value { color: var(--status-good); }
+  .kpi.warning .value { color: #b5790a; }
+  @media (prefers-color-scheme: dark) { .kpi.warning .value { color: var(--status-warning); } }
+
+  /* Priority table */
+  .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
+  .badge-alta { background: var(--status-good-bg); color: var(--status-good); }
+  .badge-media { background: var(--status-warning-bg); color: #b5790a; }
+  @media (prefers-color-scheme: dark) { .badge-media { color: var(--status-warning); } }
+
+  .toggle-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-secondary); }
+
+  /* Bar charts (plain HTML/CSS) */
+  .barchart { display: flex; flex-direction: column; gap: 6px; }
+  .barrow { display: grid; grid-template-columns: 130px 1fr 56px; align-items: center; gap: 0.6rem; }
+  .barrow .barlabel { font-size: 0.82rem; color: var(--text-secondary); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { background: var(--gridline); border-radius: 4px; height: 20px; position: relative; }
+  .barfill { height: 20px; border-radius: 4px 2px 2px 4px; max-width: 100%; }
+  .barrow .barvalue { font-size: 0.82rem; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .chart-legend { display: flex; gap: 1.25rem; margin-bottom: 0.9rem; font-size: 0.82rem; color: var(--text-secondary); flex-wrap: wrap; }
+  .chart-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 0.35rem; vertical-align: -1px; }
+
+  /* Filters + table */
+  .filtros { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  select, input { padding: 0.4rem 0.5rem; font-size: 0.88rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-1); color: var(--text-primary); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td { border: 1px solid var(--gridline); padding: 0.4rem 0.6rem; text-align: left; }
+  th { background: var(--page); position: sticky; top: 0; color: var(--text-secondary); font-weight: 600; }
+  tbody tr:hover { background: var(--page); }
+  #estado-carga { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem; }
+  #aviso-limite { color: var(--text-muted); font-size: 0.82rem; margin-top: 0.5rem; }
+  .tabla-wrap { overflow-x: auto; }
 </style>
 
 <h1>Universo de Prospectos RAR TE</h1>
-<div id="estado">Cargando…</div>
+<div id="estado-carga">Cargando…</div>
 
+<div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <h2>Por dónde empezar — Prioridad Alta</h2>
+  <p class="subt" style="margin-bottom:0.75rem;">Anillo 1+2 (fabricante y contratista minero registrado a la vez), activo en SUNAT. La señal más fuerte de encaje real que tenemos hoy.</p>
+  <div class="toggle-row">
+    <label><input type="checkbox" id="incluirMedia" /> incluir también Prioridad Media (Anillo 2 activo, ≥20 trabajadores o comercio exterior)</label>
+  </div>
+  <div class="tabla-wrap">
+    <table>
+      <thead>
+        <tr><th>Razón social</th><th>Anillo</th><th>Trabajadores</th><th>Comercio ext.</th><th>Ubigeo</th><th>Prioridad</th></tr>
+      </thead>
+      <tbody id="filas-prioridad"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Composición del universo por anillo</h2>
+  <div class="chart-legend" id="leyenda-anillo"></div>
+  <div class="barchart" id="chart-anillo"></div>
+</div>
+
+<div class="card">
+  <h2>Prioridad Alta + Media por departamento</h2>
+  <div class="barchart" id="chart-depto"></div>
+</div>
+
+<h2>Explorar todo el universo</h2>
 <div class="filtros">
   <select id="filtroAnillo">
     <option value="">Todos los anillos</option>
@@ -21,28 +157,45 @@
     <option value="Anillo 2">Anillo 2</option>
     <option value="Anillo 1+2">Anillo 1+2</option>
   </select>
+  <select id="filtroPrioridad">
+    <option value="">Cualquier prioridad</option>
+    <option value="Alta">Alta</option>
+    <option value="Media">Media</option>
+    <option value="Exploración">Exploración</option>
+  </select>
   <select id="filtroEstado">
     <option value="">Cualquier estado</option>
     <option value="ACTIVO">Solo activos (SUNAT)</option>
   </select>
-  <input id="filtroBusqueda" placeholder="Buscar por RUC, razón social o CIIU" style="flex: 1; min-width: 240px;" />
+  <input id="filtroBusqueda" placeholder="Buscar por RUC, razón social o CIIU" style="flex: 1; min-width: 220px;" />
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>RUC</th><th>Razón social</th><th>CIIU</th><th>Ubigeo</th>
-      <th>Tamaño</th><th>Anillo</th><th>Estado SUNAT</th><th>Fuente</th>
-    </tr>
-  </thead>
-  <tbody id="filas"></tbody>
-</table>
+<div class="tabla-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>RUC</th><th>Razón social</th><th>CIIU</th><th>Ubigeo</th>
+        <th>Tamaño</th><th>Anillo</th><th>Prioridad</th><th>Estado SUNAT</th>
+        <th>Trabajadores</th><th>Comercio ext.</th>
+      </tr>
+    </thead>
+    <tbody id="filas"></tbody>
+  </table>
+</div>
 <div id="aviso-limite"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
   const CSV_URL = "https://docs.google.com/spreadsheets/d/1zsVGF4jk-yeiwO_P1wG8yvvcYQBOZOegWVwiZtwmFdI/export?format=csv&gid=0";
   const LIMITE_RENDER = 500;
+
+  const DEPARTAMENTOS = {
+    "01": "Amazonas", "02": "Áncash", "03": "Apurímac", "04": "Arequipa", "05": "Ayacucho",
+    "06": "Cajamarca", "07": "Callao", "08": "Cusco", "09": "Huancavelica", "10": "Huánuco",
+    "11": "Ica", "12": "Junín", "13": "La Libertad", "14": "Lambayeque", "15": "Lima",
+    "16": "Loreto", "17": "Madre de Dios", "18": "Moquegua", "19": "Pasco", "20": "Piura",
+    "21": "Puno", "22": "San Martín", "23": "Tacna", "24": "Tumbes", "25": "Ucayali",
+  };
 
   let filas = [];
 
@@ -52,22 +205,128 @@
     return div.innerHTML;
   }
 
+  function formatearTrab(valor) {
+    if (valor === "" || valor == null || Number.isNaN(Number(valor))) return null;
+    return Math.round(Number(valor)).toLocaleString("es-PE");
+  }
+
+  function departamentoDe(ubigeo) {
+    if (!ubigeo || ubigeo.length < 2) return "Sin dato";
+    return DEPARTAMENTOS[ubigeo.slice(0, 2)] ?? "Sin dato";
+  }
+
+  function calcularPrioridad(f) {
+    const activo = f.estado === "ACTIVO" && f.condicion_domicilio === "HABIDO";
+    const trab = Number(f.nro_trabajadores);
+    const tieneTrab = f.nro_trabajadores !== "" && f.nro_trabajadores != null && !Number.isNaN(trab);
+    if (f.anillo === "Anillo 1+2" && activo) return "Alta";
+    if (f.anillo === "Anillo 2" && activo && ((tieneTrab && trab >= 20) || f.comercio_exterior === "IMPORTADOR/EXPORTADOR")) return "Media";
+    return "Exploración";
+  }
+
   async function cargar() {
     const resp = await fetch(CSV_URL);
     const texto = await resp.text();
     const parseado = Papa.parse(texto, { header: true, skipEmptyLines: true });
-    filas = parseado.data;
-    document.getElementById("estado").textContent = `${filas.length.toLocaleString("es-PE")} empresas cargadas`;
+    filas = parseado.data.map((f) => ({ ...f, prioridad: calcularPrioridad(f) }));
+    document.getElementById("estado-carga").textContent = `${filas.length.toLocaleString("es-PE")} empresas cargadas`;
+    renderKpis();
+    renderPrioridad();
+    renderChartAnillo();
+    renderChartDepto();
     render();
+  }
+
+  function renderKpis() {
+    const total = filas.length;
+    const activas = filas.filter((f) => f.estado === "ACTIVO" && f.condicion_domicilio === "HABIDO").length;
+    const alta = filas.filter((f) => f.prioridad === "Alta").length;
+    const media = filas.filter((f) => f.prioridad === "Media").length;
+    const pctActivas = total ? Math.round((activas / total) * 100) : 0;
+
+    document.getElementById("kpis").innerHTML = `
+      <div class="kpi"><div class="label">Total empresas</div><div class="value">${total.toLocaleString("es-PE")}</div></div>
+      <div class="kpi"><div class="label">% activas en SUNAT</div><div class="value">${pctActivas}%</div></div>
+      <div class="kpi good"><div class="label">Prioridad Alta</div><div class="value">${alta.toLocaleString("es-PE")}</div></div>
+      <div class="kpi warning"><div class="label">Prioridad Media</div><div class="value">${media.toLocaleString("es-PE")}</div></div>
+    `;
+  }
+
+  function renderPrioridad() {
+    const incluirMedia = document.getElementById("incluirMedia").checked;
+    const niveles = incluirMedia ? ["Alta", "Media"] : ["Alta"];
+    const ordenNivel = { "Alta": 0, "Media": 1 };
+    const lista = filas
+      .filter((f) => niveles.includes(f.prioridad))
+      .sort((a, b) => {
+        const nivel = ordenNivel[a.prioridad] - ordenNivel[b.prioridad];
+        if (nivel !== 0) return nivel;
+        const ta = Number(a.nro_trabajadores) || -1;
+        const tb = Number(b.nro_trabajadores) || -1;
+        return tb - ta;
+      })
+      .slice(0, 300);
+
+    document.getElementById("filas-prioridad").innerHTML = lista
+      .map((f) => `<tr>
+        <td>${escapar(f.razon_social)}</td>
+        <td>${escapar(f.anillo)}</td>
+        <td>${formatearTrab(f.nro_trabajadores) ?? "—"}</td>
+        <td>${escapar(f.comercio_exterior) || "—"}</td>
+        <td>${escapar(departamentoDe(f.ubigeo))}</td>
+        <td><span class="badge ${f.prioridad === "Alta" ? "badge-alta" : "badge-media"}">${f.prioridad}</span></td>
+      </tr>`)
+      .join("");
+  }
+
+  function renderChartAnillo() {
+    const grupos = { "Anillo 1": 0, "Anillo 2": 0, "Anillo 1+2": 0 };
+    filas.forEach((f) => { if (grupos[f.anillo] !== undefined) grupos[f.anillo]++; });
+    const colores = { "Anillo 1": "var(--series-1)", "Anillo 2": "var(--series-2)", "Anillo 1+2": "var(--series-3)" };
+    const max = Math.max(...Object.values(grupos));
+
+    document.getElementById("leyenda-anillo").innerHTML = Object.keys(grupos)
+      .map((k) => `<span><span class="sw" style="background:${colores[k]}"></span>${k}</span>`)
+      .join("");
+
+    document.getElementById("chart-anillo").innerHTML = Object.entries(grupos)
+      .map(([nombre, valor]) => `
+        <div class="barrow">
+          <div class="barlabel">${nombre}</div>
+          <div class="bartrack"><div class="barfill" style="width:${(valor / max) * 100}%; background:${colores[nombre]}"></div></div>
+          <div class="barvalue">${valor.toLocaleString("es-PE")}</div>
+        </div>`)
+      .join("");
+  }
+
+  function renderChartDepto() {
+    const conteo = {};
+    filas.filter((f) => f.prioridad === "Alta" || f.prioridad === "Media").forEach((f) => {
+      const d = departamentoDe(f.ubigeo);
+      conteo[d] = (conteo[d] || 0) + 1;
+    });
+    const top = Object.entries(conteo).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const max = Math.max(...top.map(([, v]) => v), 1);
+
+    document.getElementById("chart-depto").innerHTML = top
+      .map(([nombre, valor]) => `
+        <div class="barrow">
+          <div class="barlabel">${nombre}</div>
+          <div class="bartrack"><div class="barfill" style="width:${(valor / max) * 100}%; background:var(--seq-blue)"></div></div>
+          <div class="barvalue">${valor.toLocaleString("es-PE")}</div>
+        </div>`)
+      .join("");
   }
 
   function render() {
     const anillo = document.getElementById("filtroAnillo").value;
+    const prioridad = document.getElementById("filtroPrioridad").value;
     const estado = document.getElementById("filtroEstado").value;
     const busqueda = document.getElementById("filtroBusqueda").value.toLowerCase();
 
     const filtradas = filas.filter((f) => {
       if (anillo && f.anillo !== anillo) return false;
+      if (prioridad && f.prioridad !== prioridad) return false;
       if (estado && f.estado !== estado) return false;
       if (busqueda) {
         const campo = `${f.ruc} ${f.razon_social} ${f.ciiu}`.toLowerCase();
@@ -86,8 +345,10 @@
         <td>${escapar(f.ubigeo)}</td>
         <td>${escapar(f.tamano)}</td>
         <td>${escapar(f.anillo)}</td>
+        <td>${escapar(f.prioridad)}</td>
         <td>${escapar(f.estado)}</td>
-        <td>${escapar(f.fuente)}</td>
+        <td>${formatearTrab(f.nro_trabajadores) ?? ""}</td>
+        <td>${escapar(f.comercio_exterior)}</td>
       </tr>`)
       .join("");
 
@@ -98,8 +359,10 @@
   }
 
   document.getElementById("filtroAnillo").addEventListener("change", render);
+  document.getElementById("filtroPrioridad").addEventListener("change", render);
   document.getElementById("filtroEstado").addEventListener("change", render);
   document.getElementById("filtroBusqueda").addEventListener("input", render);
+  document.getElementById("incluirMedia").addEventListener("change", renderPrioridad);
 
   cargar();
 </script>

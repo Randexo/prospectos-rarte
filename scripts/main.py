@@ -16,6 +16,7 @@ import pandas as pd
 import map_minem_dgm
 import map_produce_grandes
 import map_produce_mipyme
+import map_sunat_completo
 import map_sunat_padron
 
 RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "raw")
@@ -76,11 +77,21 @@ def construir_universo(fecha_corte: str) -> pd.DataFrame:
 
     no_matcheados_sunat = len(rucs_objetivo - set(sunat["ruc"]))
 
+    # Enriquecimiento adicional: padrón RUC completo de SUNAT (no el reducido)
+    # trae número de trabajadores y actividad de comercio exterior — proxies
+    # operacionales que ni PRODUCE ni MINEM ni el padrón reducido traen.
+    sunat_completo = map_sunat_completo.enriquecer(_ultimo_archivo("sunatcompleto"), rucs_objetivo)
+    sunat_completo_idx = sunat_completo.set_index("ruc")
+    universo["nro_trabajadores"] = universo["ruc"].map(sunat_completo_idx["nro_trabajadores"].to_dict())
+    universo["comercio_exterior"] = universo["ruc"].map(sunat_completo_idx["comercio_exterior"].to_dict())
+
     print("=== Resumen ===")
     print(universo["anillo"].value_counts())
     print(f"Anillo 1+2 (traslape): {(universo['anillo'] == 'Anillo 1+2').sum()}")
     print(f"RUCs sin match en SUNAT: {no_matcheados_sunat}")
     print(f"Campos rellenados por SUNAT (razon_social/ubigeo, antes vacíos): {faltantes_antes.to_dict()}")
+    print(f"RUCs con nro_trabajadores disponible: {universo['nro_trabajadores'].notna().sum()}")
+    print(f"RUCs con actividad de comercio exterior: {(universo['comercio_exterior'] == 'IMPORTADOR/EXPORTADOR').sum()}")
 
     return universo
 

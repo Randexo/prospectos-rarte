@@ -6,6 +6,7 @@ venv/
 
 # Archivos fuente crudos (pesados, re-descargables desde la fuente original)
 raw/*.csv
+raw/*.xlsx
 !raw/.gitkeep
 
 # Salidas versionadas localmente pero no en el repo (pueden crecer mucho)

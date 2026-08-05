@@ -12,15 +12,16 @@ FUENTE = "produce_grandes"
 
 
 def mapear(path_crudo: str, fecha_corte: str) -> pd.DataFrame:
-    df = pd.read_csv(path_crudo, encoding="latin-1", sep=None, engine="python")
+    # Columnas reales (verificadas en produce_grandes_2026-08-04.csv):
+    # ruc,razon_social,descripcion_ciiu3,ciiu3,departamento,provincia,distrito,
+    # ubigeo,sector,PERIODO,FECHA_PUBLICACION
+    df = pd.read_csv(path_crudo, encoding="latin-1", dtype=str)
 
-    # TODO: verificar nombres reales de columnas al bajar el archivo.
-    # Placeholder de mapeo — ajustar una vez inspeccionado el archivo real.
     out = pd.DataFrame({
         "ruc": df["ruc"].map(limpiar_ruc),
-        "razon_social": df.get("razon_social"),
-        "ciiu": df.get("ciiu"),
-        "ubigeo": df.get("ubigeo"),
+        "razon_social": df["razon_social"],
+        "ciiu": df["ciiu3"] + " - " + df["descripcion_ciiu3"],
+        "ubigeo": df["ubigeo"],
         "tamano": "grande",
         "anillo": "Anillo 1",
         "fuente": FUENTE,

@@ -25,7 +25,7 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
 def _ultimo_archivo(prefijo: str) -> str:
     candidatos = sorted(
         p
-        for patron in (f"{prefijo}_*.csv", f"{prefijo}_*.xlsx")
+        for patron in (f"{prefijo}_*.csv", f"{prefijo}_*.xlsx", f"{prefijo}_*.txt")
         for p in glob.glob(os.path.join(RAW_DIR, patron))
         if "diccionario" not in p
     )

@@ -6,9 +6,10 @@ para rellenar campos vacíos (razón social, ubigeo, estado) de los RUCs que
 ya aparecen en Anillo 1 / Anillo 2. El padrón completo tiene millones de
 filas: nunca cargar completo a memoria sin filtrar primero por rucs_objetivo.
 
-TODO: confirmar el orden/cantidad real de columnas contra el archivo bajado
-(el padrón es texto plano delimitado por "|", sin encabezado). El layout de
-abajo es el conocido públicamente pero puede variar por versión.
+Layout verificado contra padron_reducido_ruc.txt (2026-08-04): delimitado
+por "|", CON encabezado (a diferencia de lo asumido inicialmente), 15
+columnas + una vacía final por el "|" al cierre de cada línea. Se usan
+solo las primeras 5.
 """
 
 import pandas as pd
@@ -17,7 +18,6 @@ from schema import limpiar_ruc
 
 FUENTE = "sunat_padron"
 
-# TODO: confirmar contra archivo real
 COLUMNAS_PADRON = [
     "ruc",
     "razon_social",
@@ -34,10 +34,11 @@ def enriquecer(path_crudo: str, rucs_objetivo: set[str], chunksize: int = 200_00
     for chunk in pd.read_csv(
         path_crudo,
         sep="|",
-        header=None,
+        header=0,
         encoding="latin-1",
         dtype=str,
         chunksize=chunksize,
+        on_bad_lines="skip",
     ):
         chunk = chunk.iloc[:, : len(COLUMNAS_PADRON)]
         chunk.columns = COLUMNAS_PADRON

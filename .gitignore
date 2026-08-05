@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+*.gsheet
 
 # Archivos fuente crudos (pesados, re-descargables desde la fuente original)
 raw/*.csv

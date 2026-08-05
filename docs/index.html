@@ -8,6 +8,7 @@
   th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
   th { background: #f4f4f4; position: sticky; top: 0; }
   #estado { color: #666; font-size: 0.85rem; margin-bottom: 1rem; }
+  #aviso-limite { color: #a15c00; font-size: 0.85rem; margin-top: 0.5rem; }
 </style>
 
 <h1>Universo de Prospectos RAR TE</h1>
@@ -20,70 +21,84 @@
     <option value="Anillo 2">Anillo 2</option>
     <option value="Anillo 1+2">Anillo 1+2</option>
   </select>
-  <input id="filtroBusqueda" placeholder="Buscar por RUC o razón social" />
+  <select id="filtroEstado">
+    <option value="">Cualquier estado</option>
+    <option value="ACTIVO">Solo activos (SUNAT)</option>
+  </select>
+  <input id="filtroBusqueda" placeholder="Buscar por RUC, razón social o CIIU" style="flex: 1; min-width: 240px;" />
 </div>
 
 <table>
   <thead>
     <tr>
       <th>RUC</th><th>Razón social</th><th>CIIU</th><th>Ubigeo</th>
-      <th>Tamaño</th><th>Anillo</th><th>Fuente</th><th>Fecha corte</th>
+      <th>Tamaño</th><th>Anillo</th><th>Estado SUNAT</th><th>Fuente</th>
     </tr>
   </thead>
   <tbody id="filas"></tbody>
 </table>
+<div id="aviso-limite"></div>
 
-<!-- TODO: reemplazar por la config real una vez creada la Web App en Firebase Console -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCbtQGtdQr7GDXUMPU5j0ElLPeXI0Lj3q8",
-    authDomain: "prospectos-rarte.firebaseapp.com",
-    projectId: "prospectos-rarte",
-    storageBucket: "prospectos-rarte.firebasestorage.app",
-    messagingSenderId: "307310010172",
-    appId: "1:307310010172:web:6d17fc7c531ab4b7e24839",
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/1zsVGF4jk-yeiwO_P1wG8yvvcYQBOZOegWVwiZtwmFdI/export?format=csv&gid=0";
+  const LIMITE_RENDER = 500;
 
   let filas = [];
 
+  function escapar(texto) {
+    const div = document.createElement("div");
+    div.textContent = texto ?? "";
+    return div.innerHTML;
+  }
+
   async function cargar() {
-    const snap = await getDocs(collection(db, "empresas"));
-    filas = snap.docs.map((d) => d.data());
-    document.getElementById("estado").textContent = `${filas.length} empresas cargadas`;
+    const resp = await fetch(CSV_URL);
+    const texto = await resp.text();
+    const parseado = Papa.parse(texto, { header: true, skipEmptyLines: true });
+    filas = parseado.data;
+    document.getElementById("estado").textContent = `${filas.length.toLocaleString("es-PE")} empresas cargadas`;
     render();
   }
 
   function render() {
     const anillo = document.getElementById("filtroAnillo").value;
+    const estado = document.getElementById("filtroEstado").value;
     const busqueda = document.getElementById("filtroBusqueda").value.toLowerCase();
 
     const filtradas = filas.filter((f) => {
       if (anillo && f.anillo !== anillo) return false;
-      if (busqueda && !(`${f.ruc} ${f.razon_social}`.toLowerCase().includes(busqueda))) return false;
+      if (estado && f.estado !== estado) return false;
+      if (busqueda) {
+        const campo = `${f.ruc} ${f.razon_social} ${f.ciiu}`.toLowerCase();
+        if (!campo.includes(busqueda)) return false;
+      }
       return true;
     });
 
-    document.getElementById("filas").innerHTML = filtradas
+    const aMostrar = filtradas.slice(0, LIMITE_RENDER);
+
+    document.getElementById("filas").innerHTML = aMostrar
       .map((f) => `<tr>
-        <td>${f.ruc ?? ""}</td>
-        <td>${f.razon_social ?? ""}</td>
-        <td>${f.ciiu ?? ""}</td>
-        <td>${f.ubigeo ?? ""}</td>
-        <td>${f.tamano ?? ""}</td>
-        <td>${f.anillo ?? ""}</td>
-        <td>${f.fuente ?? ""}</td>
-        <td>${f.fecha_corte ?? ""}</td>
+        <td>${escapar(f.ruc)}</td>
+        <td>${escapar(f.razon_social)}</td>
+        <td>${escapar(f.ciiu)}</td>
+        <td>${escapar(f.ubigeo)}</td>
+        <td>${escapar(f.tamano)}</td>
+        <td>${escapar(f.anillo)}</td>
+        <td>${escapar(f.estado)}</td>
+        <td>${escapar(f.fuente)}</td>
       </tr>`)
       .join("");
+
+    const aviso = document.getElementById("aviso-limite");
+    aviso.textContent = filtradas.length > LIMITE_RENDER
+      ? `Mostrando ${LIMITE_RENDER} de ${filtradas.length.toLocaleString("es-PE")} resultados — afina la búsqueda para ver más específico.`
+      : `${filtradas.length.toLocaleString("es-PE")} resultados.`;
   }
 
   document.getElementById("filtroAnillo").addEventListener("change", render);
+  document.getElementById("filtroEstado").addEventListener("change", render);
   document.getElementById("filtroBusqueda").addEventListener("input", render);
 
   cargar();

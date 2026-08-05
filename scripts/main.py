@@ -1,9 +1,9 @@
 """Orquestador: arma el universo consolidado a partir de los archivos crudos
-en raw/, guarda un CSV versionado en output/ y (si hay credenciales) lo sube
-a Firestore.
+en raw/, guarda un CSV versionado en output/ y (opcionalmente) lo sube a
+Google Sheets.
 
 Uso:
-    python scripts/main.py --fecha-corte 2026-08-04
+    python scripts/main.py --fecha-corte 2026-08-04 --subir-sheets
 """
 
 import argparse
@@ -88,7 +88,7 @@ def construir_universo(fecha_corte: str) -> pd.DataFrame:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--fecha-corte", default=str(date.today()))
-    parser.add_argument("--subir-firestore", action="store_true")
+    parser.add_argument("--subir-sheets", action="store_true")
     args = parser.parse_args()
 
     universo = construir_universo(args.fecha_corte)
@@ -98,10 +98,10 @@ def main():
     universo.to_csv(salida, index=False)
     print(f"\nGuardado: {salida}")
 
-    if args.subir_firestore:
-        import push_firestore
+    if args.subir_sheets:
+        import push_sheets
 
-        push_firestore.subir(universo)
+        push_sheets.subir(universo)
 
 
 if __name__ == "__main__":

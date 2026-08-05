@@ -2,6 +2,12 @@
 Fuente: https://datosabiertos.gob.pe/dataset/minem-contratistas-mineros
 
 Anillo 2, sin filtro adicional (la inscripción ya es el filtro).
+
+Archivo real (.xlsx): 5 filas de título repetido, encabezado en la fila 6:
+REGISTRO, R.D, FECHA R.D, CONTRATISTA, RUC, DOMICILIO, DISTRITO, PROVINCIA,
+DEPARTAMENTO, TELEFONO, REPRESENTANTE, EXPLORACION, EXPLOTACION, DESARROLLO,
+BENEFICIO. No trae CIIU ni ubigeo (código) — quedan vacíos y los rellena el
+enriquecimiento de SUNAT en el orquestador.
 """
 
 import pandas as pd
@@ -12,15 +18,13 @@ FUENTE = "minem_dgm"
 
 
 def mapear(path_crudo: str, fecha_corte: str) -> pd.DataFrame:
-    df = pd.read_csv(path_crudo, encoding="latin-1", sep=None, engine="python")
+    df = pd.read_excel(path_crudo, skiprows=5, dtype=str)
 
-    # TODO: verificar nombres reales de columnas al bajar el archivo.
-    # Placeholder de mapeo — ajustar una vez inspeccionado el archivo real.
     out = pd.DataFrame({
-        "ruc": df["ruc"].map(limpiar_ruc),
-        "razon_social": df.get("razon_social"),
-        "ciiu": df.get("ciiu"),
-        "ubigeo": df.get("ubigeo"),
+        "ruc": df["RUC"].map(limpiar_ruc),
+        "razon_social": df["CONTRATISTA"],
+        "ciiu": None,
+        "ubigeo": None,
         "tamano": None,
         "anillo": "Anillo 2",
         "fuente": FUENTE,

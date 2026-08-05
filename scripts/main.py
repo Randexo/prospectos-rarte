@@ -23,9 +23,14 @@ OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
 
 
 def _ultimo_archivo(prefijo: str) -> str:
-    candidatos = sorted(glob.glob(os.path.join(RAW_DIR, f"{prefijo}_*.csv")))
+    candidatos = sorted(
+        p
+        for patron in (f"{prefijo}_*.csv", f"{prefijo}_*.xlsx")
+        for p in glob.glob(os.path.join(RAW_DIR, patron))
+        if "diccionario" not in p
+    )
     if not candidatos:
-        raise FileNotFoundError(f"No se encontró ningún raw/{prefijo}_*.csv")
+        raise FileNotFoundError(f"No se encontró ningún raw/{prefijo}_*.(csv|xlsx)")
     return candidatos[-1]
 
 
